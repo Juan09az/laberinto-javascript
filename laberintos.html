@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>JUEGO LABERINTO</title>
+	<link rel="stylesheet" type="text/css" href="estilos.css">
+	
+	<script language="Javascript">
+		function esconde_div(id){
+            var elemento = document.getElementById(id);
+            elemento.style.display = 'none';
+         }
+
+         function incorrecto(){
+         	alert("La respuesta es incorrecta, sigue intentando.");
+         }
+
+		var t, inter, m = 0;
+		function starttime(){
+			t=1;			
+			inter=setInterval(function(){
+				document.getElementById("testdiv").innerHTML=m+" : "+t++;
+				if(t==60){
+					t=0;
+					m++;				
+				}
+			},1000,"JavaScript");
+		}
+
+		function timeout(){
+			clearInterval(inter);
+		}
+
+		function botones(){
+			let bold_game= document.getElementById('id1');
+			let fold_game= document.getElementById('form1');
+			let bnew_game=document.getElementById('id2');
+			let tiempos_game=document.getElementById('tiempos');
+
+			tiempos_game.hidden=false;
+			bold_game.hidden=true;
+			fold_game.hidden=true;
+			bnew_game.hidden=false;
+		}
+
+		function game_over(){
+			alert("¡Correcto!, te tomó "+document.getElementById("testdiv").innerHTML+", Bien hecho.");
+			timeout();
+		}
+
+		function validar_modo_labe(){
+			var modos=document.getElementsByName("modo");
+			var labes=document.getElementsByName("tipo");
+			for(i=0;i<labes.length;i++){
+				if(labes[i].checked==true){
+				//console.log(labes[j].value);
+				labe_sel=labes[i].value;
+			}
+		}
+
+		for(j=0;j<modos.length;j++){
+			if(modos[j].checked==true){
+				if(modos[j].value=='teclado'){
+					labe_teclado(labe_sel);
+				}else if(modos[j].value=='mouse'){
+					labe_mouse();
+				}
+			}
+		}
+
+
+	}
+
+
+	function labe_mouse(){
+		var labes=document.getElementsByName("tipo");
+
+		for(j=0;j<labes.length;j++){
+			if(labes[j].checked==true){
+				console.log("Laberinto seleccionado: "+labes[j].value);
+				let canvas = document.getElementById("c1");
+				canvas.hidden=false;
+				let tam=20;
+				let posx=0;
+				let posy=0;
+				let ncel=400/tam;
+				let laberinto;
+
+				let metax, metay;
+				let metax2, metay2;
+				let metax3, metay3;
+			//console.log(numl);
+			if(labes[j].value=='laberinto1'){
+				if (canvas.getContext) {
+					var ctx = canvas.getContext("2d"); 
+					laberinto=[];
+	        //logica del laberinto - general
+
+	        for(let xp=0;xp<ncel;xp++){
+	        	laberinto[xp]=[];
+	        	for(let yp=0;yp<ncel;yp++){
+	        		laberinto[xp][yp]=0;
+	        	}
+	        }
+
+	        //logica del laberinto con sentido al azar
+	        for(let xp=0;xp<ncel;xp+=2){
+	        	for(let yp=0;yp<ncel;yp+=2){
+	        		laberinto[xp][yp]=1;
+	        		let v=[];
+	        		if(xp<ncel){v.push({xp: xp+1, yp: yp})}
+	        			if(yp<ncel){v.push({xp: xp, yp: yp+1})}
+	        				if(v.length>0){
+	        					let ves=v[Math.floor(Math.random()*2)];
+	        					laberinto[ves.xp][ves.yp]=1;
+	        				}
+	        			}
+	        		}
+	        		console.table(laberinto);
+
+	        		metax=Math.floor(Math.random()*(ncel/2)*2);
+	        		metay=Math.floor(Math.random()*(ncel/2)*2);
+	        //console.table(metax); console.table(metay);
+	        //dibujo del laberinto
+	        for(let xp=0;xp<ncel;xp++){
+	        	for(let yp=0;yp<ncel;yp++){
+	        		if(laberinto[xp][yp]==0){
+	        			ctx.fillStyle = "rgb(0, 0, 0)";
+	        		}else if(laberinto[xp][yp]==1){
+	        			ctx.fillStyle = "rgb(255, 255, 255)";
+	        		}
+	        		ctx.fillRect(xp*tam, yp*tam, tam, tam);
+	        	}
+	        }
+
+	        ctx.fillStyle = "rgb(0, 250, 0)";
+	        ctx.fillRect(posx*tam, posy*tam, tam, tam);
+
+	        var down = false;
+	        ctx.canvas.addEventListener('mousedown', function () { 
+	        	down = true; 
+	        }, false);
+	        ctx.canvas.addEventListener('mouseup', function () { 
+	        	down = false; 
+	        }, false);
+
+	        ctx.canvas.addEventListener('mousemove', function (event) {
+	            if (down){               //Rxt.translate(0, -50);
+	            	var x=(event.clientX);
+	            	var y=(event.clientY);
+	            	console.log(x+" - "+y);
+	            	var left=this.offsetLeft;
+	            	var top=this.offsetTop;
+	            	console.log(left+" - "+top);
+
+	            	ctx.clearRect(posx*tam, posy*tam, tam, tam);
+
+	            	ctx.fillRect(x-left,
+	            		y-top, tam, tam);
+	                //Rxt.translate(0, 50);
+
+	            }
+	        }, false);
+
+	    }
+	}
+}
+}
+}
+
+
+
+
+function labe_teclado(labes){
+	if(labes){
+		botones();
+		starttime();
+		console.log("Laberinto seleccionado: "+labes);
+		let canvas = document.getElementById("c1");
+		canvas.hidden=false;
+		//logica jugador
+		let tam=20;
+		let posx=0;
+		let posy=0;
+		//logica laberinto
+		let ncel=400/tam;
+		let laberinto;
+		let metax, metay;
+
+		let move_disabled=1;
+		function mover(event){
+			if(move_disabled==1){
+				switch(event.keyCode){
+		case 37:
+        //izquierda
+        if(posx>0){
+        	if(laberinto[posx-1][posy]!=0){
+        		if(laberinto[posx-1][posy]==2){
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posx=posx-1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        			move_disabled=0; 
+        			game_over();
+        		}else if(laberinto[posx-1][posy]==4){
+        			incorrecto();
+        		}else{
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posx=posx-1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam); 
+        		}
+        	}
+
+        }
+        break;
+        case 38:
+        //arriba
+        if(posy>0){
+        	if(laberinto[posx][posy-1]!=0){
+        		if(laberinto[posx][posy-1]==2){
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posy=posy-1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        			move_disabled=0;
+        			game_over();
+
+        		}else if(laberinto[posx][posy-1]==4){
+        			incorrecto();
+        		}else{
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posy=posy-1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        		}
+        	}
+
+        }
+        break;
+        case 39:
+        //derecha
+        if(posx<ncel-1){
+        	if(laberinto[posx+1][posy]!=0){
+        		if(laberinto[posx+1][posy]==2){
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posx=posx+1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        			move_disabled=0;
+        			game_over();
+        		}else if(laberinto[posx+1][posy]==4){
+        			incorrecto();
+        		} else{
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posx=posx+1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        		}
+        	}
+        }
+        break;
+        case 40:
+        //abajo
+        if(posy<ncel-1){
+        	if(laberinto[posx][posy+1]!=0){
+        		if(laberinto[posx][posy+1]==2){
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posy=posy+1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        			move_disabled=0;
+        			game_over();
+        		}else if(laberinto[posx][posy+1]==4){
+        			incorrecto();
+        		}else{
+        			ctx.clearRect(posx*tam, posy*tam, tam, tam);
+        			posy=posy+1;
+        			ctx.fillRect(posx*tam, posy*tam, tam, tam);
+        		}
+        	}
+        }
+        break;
+    }
+}
+}
+
+if(labes=='laberinto1'){
+esconde_div("tlb2");
+esconde_div("tlb3");
+esconde_div("lb2");
+esconde_div("lb3");
+	if (canvas.getContext) {
+		var ctx = canvas.getContext("2d");
+		//logica laberinto
+		laberinto=[];
+		for(let xp=0;xp<ncel;xp++){
+			laberinto[xp]=[];
+			for(let yp=0;yp<ncel;yp++){
+				laberinto[xp][yp]=0;
+			}
+		}
+//Camino
+laberinto[0][0]=1; laberinto[0][1]=1; laberinto[1][1]=1; laberinto[1][2]=1; laberinto[1][3]=1; laberinto[1][4]=1; laberinto[1][5]=1; laberinto[2][5]=1; laberinto[3][5]=1; laberinto[4][5]=1; laberinto[5][5]=1; laberinto[6][5]=1; laberinto[7][5]=1; laberinto[8][5]=1; laberinto[9][5]=1; laberinto[9][6]=1; laberinto[9][7]=1; laberinto[10][7]=1; laberinto[10][8]=1; laberinto[10][9]=1; laberinto[10][10]=1; laberinto[10][11]=1; laberinto[11][11]=1; laberinto[12][11]=1; laberinto[13][11]=1; laberinto[13][12]=1; laberinto[13][13]=1; laberinto[12][13]=1; laberinto[11][13]=1; laberinto[10][13]=1; laberinto[10][14]=1; laberinto[10][15]=1; laberinto[11][15]=1; laberinto[11][16]=1; laberinto[11][17]=1; laberinto[11][18]=1; laberinto[12][18]=1; laberinto[13][18]=1; laberinto[13][17]=1; laberinto[13][16]=1; laberinto[13][15]=1; laberinto[14][15]=1; laberinto[15][15]=1; laberinto[16][15]=1; laberinto[17][15]=1; laberinto[17][16]=1; laberinto[17][17]=1; laberinto[17][18]=1; laberinto[17][19]=1;
+
+//Decoracion
+laberinto[15][17]=1; laberinto[15][18]=1; laberinto[15][19]=1; laberinto[13][19]=1; laberinto[13][3]=1; laberinto[13][4]=1; laberinto[13][5]=1; laberinto[13][6]=1; laberinto[13][7]=1; laberinto[13][8]=1; laberinto[13][9]=1; laberinto[3][3]=1; laberinto[2][3]=1; laberinto[3][5]=1; laberinto[4][3]=1; laberinto[6][4]=1; laberinto[6][3]=1; laberinto[6][2]=1; laberinto[6][1]=1; laberinto[5][1]=1; laberinto[4][1]=1; laberinto[3][1]=1; laberinto[3][0]=1; laberinto[7][1]=1; laberinto[8][1]=1; laberinto[8][2]=1; laberinto[8][3]=1; laberinto[9][3]=1; laberinto[10][3]=1; laberinto[9][1]=1; laberinto[10][1]=1; laberinto[11][1]=1; laberinto[12][1]=1; laberinto[11][3]=1; laberinto[13][1]=1; laberinto[14][1]=1; laberinto[15][1]=1; laberinto[16][1]=1; laberinto[17][1]=1; laberinto[18][1]=1; laberinto[18][2]=1; laberinto[18][3]=1; laberinto[18][4]=1; laberinto[17][4]=1; laberinto[16][4]=1; laberinto[15][4]=1; laberinto[18][5]=1; laberinto[18][6]=1; laberinto[17][6]=1; laberinto[16][6]=1; laberinto[15][6]=1; laberinto[10][1]=1; laberinto[18][2]=1; laberinto[11][5]=1; laberinto[11][4]=1; laberinto[15][14]=1; laberinto[15][13]=1; laberinto[15][12]=1; laberinto[15][10]=1; laberinto[15][3]=1; laberinto[15][2]=1; laberinto[13][2]=1; laberinto[12][7]=1; laberinto[12][9]=1; laberinto[15][8]=1; laberinto[15][9]=1; laberinto[16][8]=1; laberinto[17][8]=1; laberinto[18][8]=1; laberinto[19][8]=1; laberinto[19][9]=1; laberinto[19][10]=1; laberinto[19][11]=1; laberinto[17][14]=1; laberinto[17][13]=1; laberinto[17][12]=1; laberinto[17][11]=1; laberinto[17][10]=1; laberinto[16][10]=1; laberinto[15][10]=1; laberinto[18][17]=1; laberinto[19][17]=1; laberinto[7][10]=1; laberinto[7][11]=1; laberinto[7][12]=1; laberinto[7][13]=1; laberinto[7][14]=1; laberinto[8][14]=1; laberinto[9][14]=1; laberinto[9][14]=1; laberinto[9][14]=1; laberinto[3][19]=1; laberinto[3][18]=1; laberinto[3][17]=1; laberinto[3][16]=1; laberinto[3][15]=1; laberinto[3][14]=1; laberinto[3][13]=1; laberinto[3][12]=1; laberinto[2][19]=1; laberinto[1][19]=1; laberinto[1][18]=1; laberinto[1][17]=1; laberinto[0][17]=1; laberinto[0][16]=1; laberinto[0][15]=1; laberinto[1][15]=1; laberinto[1][14]=1; laberinto[1][13]=1; laberinto[2][13]=1; laberinto[1][12]=1; laberinto[1][11]=1; laberinto[1][10]=1; laberinto[0][10]=1; laberinto[0][9]=1; laberinto[0][8]=1; laberinto[0][7]=1; laberinto[0][6]=1; laberinto[0][5]=1; laberinto[1][7]=1; laberinto[2][7]=1; laberinto[3][7]=1; laberinto[4][7]=1; laberinto[5][7]=1; laberinto[6][7]=1; laberinto[7][7]=1; laberinto[7][8]=1; laberinto[3][8]=1; laberinto[3][9]=1; laberinto[3][10]=1; laberinto[5][8]=1; laberinto[5][9]=1; laberinto[5][11]=1; laberinto[5][10]=1; laberinto[5][12]=1; laberinto[5][13]=1; laberinto[4][13]=1; laberinto[4][15]=1; laberinto[5][15]=1; laberinto[5][16]=1; laberinto[5][17]=1; laberinto[5][18]=1; laberinto[6][18]=1; laberinto[7][18]=1; laberinto[7][17]=1; laberinto[7][16]=1; laberinto[8][16]=1; laberinto[8][19]=1; laberinto[9][9]=1; laberinto[9][11]=1; laberinto[7][19]=1; laberinto[9][19]=1; laberinto[9][18]=1; laberinto[11][19]=1; laberinto[18][13]=1; laberinto[19][13]=1; laberinto[19][16]=1; laberinto[18][15]=1; laberinto[19][14]=1; laberinto[19][15]=1; laberinto[18][19]=1; laberinto[5][0]=1; laberinto[7][0]=1; laberinto[9][0]=1; laberinto[13][0]=1; laberinto[15][0]=1;
+
+//se dibuja el laberinto
+for(let xp=0;xp<ncel;xp++){
+	for(let yp=0;yp<ncel;yp++){
+		if(laberinto[xp][yp]==0){
+			ctx.fillStyle = "rgb(0, 0, 0)";
+		}else 
+		if(laberinto[xp][yp]==1){
+			ctx.fillStyle = "rgb(255, 255, 255)";
+		}
+		ctx.fillRect(xp*tam, yp*tam, tam, tam);
+	}
+}
+
+//meta
+metax=Math.floor(ncel-1);
+metay=Math.floor(ncel-1);
+metax2=Math.floor(9);
+metay2=Math.floor(18);
+metax3=Math.floor(15);
+metay3=Math.floor(6);
+laberinto[metax][metay]=2;
+laberinto[metax2][metay2]=4;
+laberinto[metax3][metay3]=4;
+ctx.fillStyle = "rgb(163, 73, 164)";
+ctx.fillRect(metax*tam, metay*tam, tam, tam);
+ctx.fillStyle = "rgb(255, 0, 0)";
+ctx.fillRect(metax2*tam, metay2*tam, tam, tam);
+ctx.fillStyle = "rgb(0, 0, 255)";
+ctx.fillRect(metax3*tam, metay3*tam, tam, tam);
+
+console.table(laberinto);
+
+//se dibuja el jugador
+ctx.fillStyle = "rgb(0, 250, 0)";
+ctx.fillRect(posx*tam, posy*tam, tam, tam);
+
+window.addEventListener('keyup', mover, false);
+
+}
+}
+
+if(labes=='laberinto2'){
+	esconde_div("tlb1");
+	esconde_div("tlb3");
+	esconde_div("lb1");
+	esconde_div("lb3");
+	if (canvas.getContext) {
+		var ctx = canvas.getContext("2d");
+
+		laberinto=[];
+		for(let xp=0;xp<ncel;xp++){
+			laberinto[xp]=[];
+			for(let yp=0;yp<ncel;yp++){
+				laberinto[xp][yp]=0;
+			}
+		}
+	//Camino
+	laberinto[0][0]=1; laberinto[0][1]=1; laberinto[1][1]=1; laberinto[1][2]=1; laberinto[1][3]=1; laberinto[1][4]=1; laberinto[2][4]=1; laberinto[3][4]=1; laberinto[3][3]=1; laberinto[3][2]=1; laberinto[4][2]=1; laberinto[5][2]=1; laberinto[6][2]=1; laberinto[7][2]=1; laberinto[8][2]=1; laberinto[8][1]=1; laberinto[9][1]=1; laberinto[10][1]=1; laberinto[11][1]=1; laberinto[12][1]=1; laberinto[13][1]=1; laberinto[14][1]=1; laberinto[15][1]=1; laberinto[15][2]=1; laberinto[15][3]=1; laberinto[15][4]=1; laberinto[16][4]=1; laberinto[17][4]=1; laberinto[17][5]=1; laberinto[17][6]=1; laberinto[17][7]=1; laberinto[17][8]=1; laberinto[17][9]=1; laberinto[17][10]=1; laberinto[16][10]=1; laberinto[15][10]=1; laberinto[15][11]=1; laberinto[14][11]=1; laberinto[13][11]=1; laberinto[12][11]=1; laberinto[11][11]=1; laberinto[10][11]=1; laberinto[9][11]=1; laberinto[8][11]=1; laberinto[7][11]=1; laberinto[7][10]=1; laberinto[6][10]=1; laberinto[5][10]=1; laberinto[4][10]=1; laberinto[3][10]=1; laberinto[2][10]=1; laberinto[1][10]=1; laberinto[0][10]=1; laberinto[0][11]=1; laberinto[0][12]=1; laberinto[0][13]=1; laberinto[0][14]=1; laberinto[0][15]=1; laberinto[1][15]=1; laberinto[2][15]=1; laberinto[3][15]=1; laberinto[4][15]=1; laberinto[5][15]=1; laberinto[6][15]=1; laberinto[7][15]=1; laberinto[8][15]=1; laberinto[9][15]=1; laberinto[9][16]=1; laberinto[10][16]=1; laberinto[11][16]=1; laberinto[11][17]=1; laberinto[11][18]=1; laberinto[12][18]=1; laberinto[13][18]=1; laberinto[13][17]=1; laberinto[13][16]=1; laberinto[13][15]=1; laberinto[14][15]=1; laberinto[15][15]=1; laberinto[16][15]=1; laberinto[17][15]=1; laberinto[17][16]=1; laberinto[17][17]=1; laberinto[17][18]=1; laberinto[17][19]=1; laberinto[18][19]=1; laberinto[19][19]=1; laberinto[19][18]=1; laberinto[19][17]=1; laberinto[19][16]=1; laberinto[19][15]=1; laberinto[19][14]=1; laberinto[19][13]=1; laberinto[18][13]=1; laberinto[18][12]=1; laberinto[18][11]=1; laberinto[19][11]=1; laberinto[19][10]=1; laberinto[19][9]=1; laberinto[19][8]=1; laberinto[19][7]=1; laberinto[19][6]=1;
+
+
+	//Decoracion
+
+	laberinto[3][1]=1; laberinto[3][0]=1; laberinto[5][1]=1; laberinto[5][0]=1; laberinto[3][5]=1; laberinto[3][6]=1; laberinto[3][7]=1; laberinto[3][8]=1; laberinto[2][8]=1; laberinto[1][8]=1; laberinto[0][8]=1; laberinto[0][7]=1; laberinto[2][6]=1; laberinto[4][6]=1; laberinto[5][6]=1; laberinto[6][6]=1; laberinto[6][5]=1; laberinto[6][4]=1; laberinto[7][4]=1; laberinto[8][4]=1; laberinto[9][4]=1; laberinto[10][4]=1; laberinto[10][3]=1; laberinto[11][3]=1; laberinto[12][3]=1; laberinto[12][4]=1; laberinto[13][4]=1; laberinto[13][5]=1; laberinto[13][6]=1; laberinto[12][6]=1; laberinto[12][7]=1; laberinto[12][8]=1; laberinto[13][8]=1; laberinto[14][8]=1; laberinto[15][8]=1; laberinto[16][6]=1; laberinto[15][6]=1; laberinto[16][14]=1; laberinto[16][13]=1; laberinto[11][8]=1; laberinto[10][8]=1; laberinto[9][8]=1; laberinto[8][8]=1; laberinto[7][8]=1; laberinto[6][8]=1; laberinto[5][8]=1; laberinto[9][9]=1; laberinto[9][6]=1; laberinto[9][7]=1; laberinto[12][9]=1; laberinto[19][2]=1; laberinto[18][2]=1; laberinto[17][2]=1; laberinto[16][2]=1; laberinto[19][3]=1; laberinto[19][1]=1; laberinto[19][0]=1; laberinto[18][0]=1; laberinto[0][19]=1; laberinto[1][19]=1; laberinto[2][19]=1; laberinto[3][19]=1; laberinto[4][19]=1; laberinto[5][19]=1; laberinto[5][18]=1; laberinto[5][17]=1; laberinto[6][17]=1; laberinto[7][17]=1; laberinto[4][17]=1; laberinto[3][17]=1; laberinto[2][17]=1; laberinto[2][18]=1; laberinto[7][18]=1; laberinto[7][19]=1; laberinto[8][19]=1; laberinto[9][19]=1; laberinto[9][18]=1; laberinto[9][14]=1; laberinto[9][13]=1; laberinto[8][13]=1; laberinto[7][13]=1; laberinto[6][13]=1; laberinto[5][13]=1; laberinto[4][13]=1; laberinto[3][13]=1; laberinto[2][13]=1; laberinto[2][12]=1; laberinto[4][12]=1; laberinto[10][13]=1; laberinto[11][13]=1; laberinto[12][13]=1; laberinto[13][13]=1; laberinto[14][13]=1; laberinto[11][14]=1; laberinto[12][19]=1; laberinto[15][17]=1; laberinto[15][18]=1; laberinto[5][16]=1; laberinto[15][16]=1; laberinto[8][0]=1; laberinto[12][0]=1; laberinto[15][0]=1; laberinto[17][0]=1;
+
+	for(let xp=0;xp<ncel;xp++){
+		for(let yp=0;yp<ncel;yp++){
+			if(laberinto[xp][yp]==0){
+				ctx.fillStyle = "rgb(0, 0, 0)";
+			}else 
+			if(laberinto[xp][yp]==1){
+				ctx.fillStyle = "rgb(255, 255, 255)";
+			}
+			ctx.fillRect(xp*tam, yp*tam, tam, tam);
+		}
+	}
+
+	metax=Math.floor(19);
+	metay=Math.floor(5);
+	metax2=Math.floor(12);
+	metay2=Math.floor(9);
+	metax3=Math.floor(0);
+	metay3=Math.floor(6);
+	laberinto[metax][metay]=2;
+	laberinto[metax2][metay2]=4;
+	laberinto[metax3][metay3]=4;
+	ctx.fillStyle = "rgb(255, 0, 0)";
+	ctx.fillRect(metax*tam, metay*tam, tam, tam);
+	ctx.fillStyle = "rgb(163, 73, 164)";
+	ctx.fillRect(metax2*tam, metay2*tam, tam, tam);
+	ctx.fillStyle = "rgb(0, 0, 255)";
+	ctx.fillRect(metax3*tam, metay3*tam, tam, tam);
+
+	console.table(laberinto);
+		//jugador
+		ctx.fillStyle = "rgb(0, 250, 0)";
+		ctx.fillRect(posx*tam, posy*tam, tam, tam);
+
+		window.addEventListener("keyup", mover, false);
+	}
+}
+if(labes=='laberinto3'){
+	esconde_div("tlb1");
+	esconde_div("tlb2");
+	esconde_div("lb1");
+	esconde_div("lb2");
+	if (canvas.getContext) {
+		var ctx = canvas.getContext("2d");
+
+		laberinto=[];
+		for(let xp=0;xp<ncel;xp++){
+			laberinto[xp]=[];
+			for(let yp=0;yp<ncel;yp++){
+				laberinto[xp][yp]=0;
+			}
+		}
+//Camino
+laberinto[0][0]=1; laberinto[0][1]=1; laberinto[1][1]=1; laberinto[2][1]=1; laberinto[2][2]=1; laberinto[3][2]=1; laberinto[4][2]=1; laberinto[5][2]=1; laberinto[6][2]=1; laberinto[7][2]=1; laberinto[8][2]=1; laberinto[9][2]=1; laberinto[9][3]=1; laberinto[9][4]=1; laberinto[9][5]=1; laberinto[9][6]=1; laberinto[9][7]=1; laberinto[10][7]=1; laberinto[10][8]=1; laberinto[10][9]=1; laberinto[10][10]=1; laberinto[10][11]=1; laberinto[11][11]=1; laberinto[12][11]=1; laberinto[13][11]=1; laberinto[13][12]=1; laberinto[13][13]=1; laberinto[12][13]=1; laberinto[11][13]=1; laberinto[10][13]=1; laberinto[10][14]=1; laberinto[10][15]=1; laberinto[11][15]=1; laberinto[11][16]=1; laberinto[11][17]=1; laberinto[11][18]=1; laberinto[12][18]=1; laberinto[13][18]=1; laberinto[13][17]=1; laberinto[13][16]=1; laberinto[13][15]=1; laberinto[14][15]=1; laberinto[15][15]=1; laberinto[16][15]=1; laberinto[17][15]=1; laberinto[17][16]=1; laberinto[18][16]=1; laberinto[19][16]=1; laberinto[19][15]=1; laberinto[19][14]=1; laberinto[19][13]=1; laberinto[19][12]=1; laberinto[18][12]=1; laberinto[17][12]=1; laberinto[17][11]=1; laberinto[17][10]=1; laberinto[17][9]=1; laberinto[16][9]=1; laberinto[15][9]=1; laberinto[14][9]=1; laberinto[13][9]=1; laberinto[12][9]=1; laberinto[12][8]=1; laberinto[12][7]=1; laberinto[12][6]=1; laberinto[13][6]=1; laberinto[14][6]=1; laberinto[15][6]=1; laberinto[15][5]=1; laberinto[15][4]=1; laberinto[15][3]=1; laberinto[15][2]=1; laberinto[14][2]=1; laberinto[13][2]=1; laberinto[12][2]=1; laberinto[12][1]=1; laberinto[12][0]=1; laberinto[13][0]=1; laberinto[14][0]=1; laberinto[15][0]=1; laberinto[16][0]=1;
+
+//Decoracion
+laberinto[15][17]=1; laberinto[15][18]=1; laberinto[15][19]=1; laberinto[16][19]=1; laberinto[17][19]=1; laberinto[18][19]=1; laberinto[18][18]=1; laberinto[19][18]=1; laberinto[19][17]=1; laberinto[4][0]=1; laberinto[5][0]=1; laberinto[6][0]=1; laberinto[7][0]=1; laberinto[7][1]=1; laberinto[8][0]=1; laberinto[9][0]=1; laberinto[10][0]=1; laberinto[4][10]=1; laberinto[5][10]=1; laberinto[6][10]=1; laberinto[7][10]=1; laberinto[7][10]=1; laberinto[8][10]=1; laberinto[9][10]=1; laberinto[17][5]=1; laberinto[16][5]=1; laberinto[18][5]=1; laberinto[19][5]=1; laberinto[19][6]=1; laberinto[19][7]=1; laberinto[18][7]=1; laberinto[17][7]=1; laberinto[19][9]=1; laberinto[18][9]=1; laberinto[15][11]=1; laberinto[15][12]=1; laberinto[15][13]=1; laberinto[15][14]=1; laberinto[19][5]=1; laberinto[19][3]=1; laberinto[18][3]=1; laberinto[17][3]=1; laberinto[16][3]=1; laberinto[19][2]=1; laberinto[19][1]=1; laberinto[19][0]=1; laberinto[10][4]=1; laberinto[11][4]=1; laberinto[12][4]=1; laberinto[13][4]=1; laberinto[17][2]=1; laberinto[2][3]=1; laberinto[2][4]=1; laberinto[2][5]=1; laberinto[2][6]=1; laberinto[1][6]=1; laberinto[0][6]=1; laberinto[0][7]=1; laberinto[0][8]=1; laberinto[0][9]=1; laberinto[0][10]=1; laberinto[0][11]=1; laberinto[0][12]=1; laberinto[0][13]=1; laberinto[0][14]=1; laberinto[0][15]=1; laberinto[0][16]=1; laberinto[0][17]=1; laberinto[1][17]=1; laberinto[2][17]=1; laberinto[3][17]=1; laberinto[4][17]=1; laberinto[4][16]=1; laberinto[4][15]=1; laberinto[4][14]=1; laberinto[4][13]=1; laberinto[4][12]=1; laberinto[5][12]=1; laberinto[6][12]=1; laberinto[0][19]=1; laberinto[1][19]=1; laberinto[2][19]=1; laberinto[3][19]=1; laberinto[4][19]=1; laberinto[5][19]=1; laberinto[6][19]=1; laberinto[6][18]=1; laberinto[6][17]=1; laberinto[7][17]=1; laberinto[8][17]=1; laberinto[8][16]=1; laberinto[8][15]=1; laberinto[8][14]=1; laberinto[7][14]=1; laberinto[6][14]=1; laberinto[8][13]=1; laberinto[8][18]=1; laberinto[9][18]=1; laberinto[9][19]=1; laberinto[12][19]=1; laberinto[15][8]=1; laberinto[4][3]=1; laberinto[4][4]=1; laberinto[4][5]=1; laberinto[5][5]=1; laberinto[6][5]=1; laberinto[6][4]=1; laberinto[7][4]=1; laberinto[6][6]=1; laberinto[6][7]=1; laberinto[5][7]=1; laberinto[4][7]=1; laberinto[4][8]=1; laberinto[6][8]=1; laberinto[7][8]=1; laberinto[0][3]=1; laberinto[1][3]=1; laberinto[8][12]=1; laberinto[2][7]=1; laberinto[2][8]=1; laberinto[2][9]=1; laberinto[2][10]=1; laberinto[2][11]=1; laberinto[2][12]=1; laberinto[2][13]=1; laberinto[2][14]=1; laberinto[2][15]=1;
+
+for(let xp=0;xp<ncel;xp++){
+	for(let yp=0;yp<ncel;yp++){
+		if(laberinto[xp][yp]==0){
+			ctx.fillStyle = "rgb(0, 0, 0)";
+		}else 
+		if(laberinto[xp][yp]==1){
+			ctx.fillStyle = "rgb(255, 255, 255)";
+		}
+		ctx.fillRect(xp*tam, yp*tam, tam, tam);
+	}
+}
+
+metax=Math.floor(17);
+metay=Math.floor(0);
+metax2=Math.floor(6);
+metay2=Math.floor(12);
+metax3=Math.floor(15);
+metay3=Math.floor(17);
+laberinto[metax][metay]=2;
+laberinto[metax2][metay2]=4;
+laberinto[metax3][metay3]=4;
+ctx.fillStyle = "rgb(0, 0, 255)";
+ctx.fillRect(metax*tam, metay*tam, tam, tam);
+ctx.fillStyle = "rgb(255, 0, 0)";
+ctx.fillRect(metax2*tam, metay2*tam, tam, tam);
+ctx.fillStyle = "rgb(163, 73, 164)";
+ctx.fillRect(metax3*tam, metay3*tam, tam, tam);
+console.table(laberinto);
+
+//jugador
+ctx.fillStyle = "rgb(0, 250, 0)";
+ctx.fillRect(posx*tam, posy*tam, tam, tam);
+
+window.addEventListener("keyup", mover, false);
+//Dibujo la meta
+
+}
+}
+}
+}
+
+
+</script>
+</head>
+<body>
+	<header class="navmenu">
+	<nav>		
+		<ul class="menucenter">
+			<li><a class="menu" href="laberintos.html">Inicio</a></li>
+			<li><a class="menu" href="info_juego.html">Informaci&oacute;n del juego</a></li>
+			<li><a class="menu" href="info.html">Informaci&oacute;n de desarrollo</a></li>
+		</ul>
+	</nav>
+	</header>
+	<div class="container">
+
+		<div class="left">
+			<canvas hidden="true" id="c1" name="cv1" width="400" height="400" style="border:4px solid #000000; "></canvas>
+		</div>
+		<br>
+	<!--
+	<button type="button" id="l1" value="esq1" onclick="crear_esq('esq1')">Crear Laberinto 1</button>	
+-->
+
+	<div class="right">
+		<form id="form1">
+			<br><b>Escoja el laberinto:
+			<br>
+			<a>
+				<img src="Imagenes/Lab 1.png" alt="Laberinto 1" width="200" height="200"/>
+			</a>
+			<a>
+				<img src="Imagenes/Lab 2.png" alt="Laberinto 2" width="200" height="200"/>
+			</a>
+			<a>
+				<img src="Imagenes/Lab 3.png" alt="Laberinto 3" width="200" height="200"/>
+			</a>
+			<br>
+			<input type="radio" name="tipo" value="laberinto1">Laberinto 1&nbsp&nbsp&nbsp&nbsp&nbsp
+			<input type="radio" name="tipo" value="laberinto2">Laberinto 2&nbsp&nbsp&nbsp&nbsp&nbsp
+
+			<input type="radio" name="tipo" value="laberinto3">Laberinto 3
+			<br>Escoja una modalidad de juego:
+			<br>
+			<input type="radio" name="modo" value="teclado" checked>Teclado
+			<br>
+			
+			
+			<button type="button" id="id1" onclick="validar_modo_labe()">Escoger</button>
+
+			<br>	
+		</form>	
+		
+
+	</div>
+		<div hidden="true" class="tiempos" id="tiempos">Temporizador 
+
+			<div id="testdiv"></div>
+	<h2>PREGUNTA:</h2>
+							<div id="tlb1">
+			<h3>Si se tiene un # de intervalos que es multiplo de 3, ¿que método de integración numérica es el mas adecuado?</h3>
+		</div>
+			<div id="tlb2">
+			<h3>En raices de ecuaciones, ¿que método utiliza la derivada de la función?</h3>
+		</div>
+			<div id="tlb3">
+			<h3>¿Que técnica se usa para calcular una aproximación a la derivada de una función en un punto utilizando sus propiedades?</h3>
+		</div>
+	
+			<button hidden="true" type="button" id="id2" onclick="location.reload()">Escoger nuevo laberinto</button>
+			<div id="lb1">
+			 <p>ROJO: Simpson 1/3</p>
+			 <p>MORADO: Simpson 3/8 - correcto</p>
+			 <p>AZUL: Trapecio</p>
+			</div>
+			<div id="lb2">
+			 <p>ROJO: Newton Raphson</p>
+			 <p>MORADO: Falsa Pocisión</p>
+			 <p>AZUL: Secante</p>
+			</div>
+			<div id="lb3">
+			 <p>ROJO: Integración numérica</p>
+			 <p>MORADO: Derivación de Orden Superior</p>
+			 <p>AZUL: Derivación numérica</p>
+			</div>
+		<br>
+		</div>
+</div>
+</body>
+</html>
+
